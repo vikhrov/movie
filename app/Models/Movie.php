@@ -11,6 +11,15 @@ class Movie extends Model
         'title', 'status', 'poster',
     ];
 
+    public static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function ($movie) {
+            $movie->genres()->detach();
+        });
+    }
+
     public function genres()
     {
         return $this->belongsToMany(Genre::class);
