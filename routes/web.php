@@ -3,7 +3,6 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\GenreController;
 use App\Http\Controllers\MovieController;
-use Illuminate\Http\Request;
 
 Route::get('/', function () {
     return view('welcome');
@@ -20,11 +19,6 @@ Route::prefix('genres')->group(function () {
 
 Route::prefix('movies')->group(function () {
     Route::get('/', [MovieController::class, 'index']);
-
-    Route::get('/create', [MovieController::class, 'create']);
-
-
-
     Route::post('/', [MovieController::class, 'store']);
     Route::get('/{movie}', [MovieController::class, 'show']);
     Route::put('/{movie}', [MovieController::class, 'update']);

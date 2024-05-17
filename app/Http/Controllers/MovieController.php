@@ -82,14 +82,6 @@ class MovieController extends Controller
         return response()->json(null, 204);
     }
 
-
-
-
-        public function create()
-    {
-        $genres = Genre::all(); 
-        return view('movies.create', compact('genres'));
-    }
 }
 
 
