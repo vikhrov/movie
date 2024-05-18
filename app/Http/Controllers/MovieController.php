@@ -4,11 +4,17 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Movie;
-use App\Models\Genre;
-
+use App\Services\MovieService;
 
 class MovieController extends Controller
 {
+    protected $movieService;
+
+    public function __construct(MovieService $movieService)
+    {
+        $this->movieService = $movieService;
+    }
+
     public function index()
     {
         $movies = Movie::paginate(10);
@@ -18,26 +24,13 @@ class MovieController extends Controller
 
     public function store(Request $request)
     {
-            $validatedData = $request->validate([
-                'title' => 'required|string|max:255',
-                'poster' => 'nullable|image',
-                'genres' => 'required|array', 
-            ]);
-        
-            if ($request->hasFile('poster')) {
-                $posterPath = $request->file('poster')->store('posters');
-            } else {
-                $posterPath = 'default_poster.jpg';
-            }
-        
-            $movie = Movie::create([
-                'title' => $validatedData['title'],
-                'poster' => $posterPath,
-            ]);
-        
-            $movie->genres()->attach($validatedData['genres']);
-        
-            return response()->json($movie, 201); 
+        $validatedData = $this->movieService->validateMovie($request);
+
+        $posterPath = $this->movieService->handlePosterUpload($request->file('poster'));
+
+        $movie = $this->movieService->createMovie($validatedData, $posterPath);
+
+        return response()->json($movie, 201);
     }
 
     public function show(Movie $movie)
@@ -47,26 +40,16 @@ class MovieController extends Controller
 
     public function update(Request $request, Movie $movie)
     {
-        $validatedData = $request->validate([
-            'title' => 'required|string|max:255',
-            'poster' => 'nullable|image',
-            'genres' => 'required|array',
-        ]);
+        $validatedData = $this->movieService->validateMovie($request);
 
+        $posterPath = null;
         if ($request->hasFile('poster')) {
-            $posterPath = $request->file('poster')->store('posters');
-        } else {
-            $posterPath = $movie->poster;
+            $posterPath = $this->movieService->handlePosterUpload($request->file('poster'));
         }
 
-        $movie->update([
-            'title' => $validatedData['title'],
-            'poster' => $posterPath,
-        ]);
+        $movie = $this->movieService->updateMovie($movie, $validatedData, $posterPath);
 
-        $movie->genres()->sync($validatedData['genres']);
-
-        return response()->json($movie, 200);
+        return response()->json($movie);
     }
     
         public function publish(Movie $movie)
